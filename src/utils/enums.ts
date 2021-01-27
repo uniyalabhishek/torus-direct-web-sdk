@@ -31,7 +31,6 @@ export const AGGREGATE_VERIFIER = {
   // OR_AGGREGATE_VERIFIER : "or_aggregate_verifier",
 } as const;
 
-// @flow
 export type TORUS_NETWORK_TYPE = typeof TORUS_NETWORK[keyof typeof TORUS_NETWORK];
 export type LOGIN_TYPE = typeof LOGIN[keyof typeof LOGIN];
 export type AGGREGATE_VERIFIER_TYPE = typeof AGGREGATE_VERIFIER[keyof typeof AGGREGATE_VERIFIER];

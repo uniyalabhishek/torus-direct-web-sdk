@@ -85,11 +85,11 @@ export default abstract class AbstractLoginHandler implements ILoginHandler {
         };
         window.addEventListener("message", postMessageEventHandler);
       }
-      verifierWindow.open();
       verifierWindow.once("close", () => {
         if (bc) bc.close();
         reject(new Error("user closed popup"));
       });
+      verifierWindow.open();
     });
   }
 }

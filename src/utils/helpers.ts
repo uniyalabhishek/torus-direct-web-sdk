@@ -95,3 +95,5 @@ export const handleRedirectParameters = (
   }
   return { error, instanceParameters, hashParameters };
 };
+
+export const isExtension = typeof globalThis.browser !== "undefined";

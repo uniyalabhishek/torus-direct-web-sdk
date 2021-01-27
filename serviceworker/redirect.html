@@ -112,7 +112,7 @@
         <div class="beat beat-even"></div>
         <div class="beat beat-odd"></div>
       </div>
-      <h1 class="title content" id="closeText" style="display: none;">You can close this window now</h1>
+      <h1 class="title content" id="closeText" style="display: none">You can close this window now</h1>
     </div>
     <script
       src="https://scripts.toruswallet.io/broadcastChannel_3_1_0.js"
@@ -208,19 +208,23 @@
             console.error(e);
           }
           if (instanceParams.redirectToOpener) {
-            // communicate to window.opener
-            window.opener.postMessage(
-              {
-                channel: "redirect_channel_" + instanceParams.instanceId,
-                data: {
-                  instanceParams: instanceParams,
-                  hashParams: hashParams,
-                  queryParams: queryParams,
+            if (window.opener) {
+              // communicate to window.opener
+              window.opener.postMessage(
+                {
+                  channel: "redirect_channel_" + instanceParams.instanceId,
+                  data: {
+                    instanceParams: instanceParams,
+                    hashParams: hashParams,
+                    queryParams: queryParams,
+                  },
+                  error: error,
                 },
-                error: error,
-              },
-              "http://localhost:3000"
-            );
+                "http://localhost:3000"
+              );
+            } else {
+              // todo: do something
+            }
           } else {
             // communicate via broadcast channel
             bc = new broadcastChannelLib.BroadcastChannel("redirect_channel_" + instanceParams.instanceId, broadcastChannelOptions);

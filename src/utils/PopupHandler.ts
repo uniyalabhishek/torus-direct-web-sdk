@@ -1,5 +1,7 @@
 import { EventEmitter } from "events";
 
+import { isExtension } from "./helpers";
+
 class PopupHandler extends EventEmitter {
   url: URL;
 
@@ -7,7 +9,7 @@ class PopupHandler extends EventEmitter {
 
   features: string;
 
-  window: Window;
+  window: Window | browser.windows.Window;
 
   windowTimer: number;
 
@@ -27,27 +29,55 @@ class PopupHandler extends EventEmitter {
   _setupTimer(): void {
     this.windowTimer = Number(
       setInterval(() => {
-        if (this.window && this.window.closed) {
-          clearInterval(this.windowTimer);
+        if (!isExtension) {
+          const localWindow = this.window as Window;
+          if (localWindow && localWindow.closed) {
+            clearInterval(this.windowTimer);
+            if (!this.iClosedWindow) {
+              this.emit("close");
+            }
+            this.iClosedWindow = false;
+            this.window = undefined;
+          }
+        }
+        if (this.window === undefined) clearInterval(this.windowTimer);
+      }, 500)
+    );
+    if (isExtension) {
+      const localWindow = this.window as browser.windows.Window;
+      const listener = (id: number) => {
+        if (id === localWindow.id) {
           if (!this.iClosedWindow) {
             this.emit("close");
           }
           this.iClosedWindow = false;
           this.window = undefined;
+          browser.windows.onRemoved.removeListener(listener);
         }
-        if (this.window === undefined) clearInterval(this.windowTimer);
-      }, 500)
-    );
+      };
+      browser.windows.onRemoved.addListener(listener);
+    }
   }
 
-  open(): Promise<void> {
-    this.window = window.open(this.url.href, this.target, this.features);
-    return Promise.resolve();
+  async open(): Promise<void> {
+    if (!isExtension) {
+      this.window = window.open(this.url.href, this.target, this.features);
+      return;
+    }
+    this.window = await browser.windows.create({ url: this.url.href, type: "popup" });
   }
 
-  close(): void {
+  async close(): Promise<void> {
     this.iClosedWindow = true;
-    if (this.window) this.window.close();
+    if (this.window) {
+      if (!isExtension) {
+        const localWindow = this.window as Window;
+        localWindow.close();
+      } else {
+        const localWindow = this.window as browser.windows.Window;
+        if (localWindow.id) await browser.windows.remove(localWindow.id);
+      }
+    }
   }
 }
 
